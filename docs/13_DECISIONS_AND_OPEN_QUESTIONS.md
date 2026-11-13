@@ -15,6 +15,7 @@
 | ADR-010 | k6 and Sentry | measurable performance/observability |
 | ADR-011 | Bootstrap baseline: Python 3.13, Django 5.2 LTS, Gunicorn, `/healthz` + `/readyz`, `X-Request-ID`, JSON error envelope, custom User in first migration, M0 Compose = `db` + `api` | reproducible engineering baseline without unused infrastructure |
 | ADR-012 | Identity/store authorization baseline: session auth dev default, membership-governed stores, server-side slugs/currency, masked 404 for cross-tenant access | secure M1 baseline while OPEN-001 remains open |
+| ADR-013 | Catalog/inventory baseline: store-scoped products, companion inventory, publication gate, server-side filters/search, absolute auditable stock adjustment | M2 catalog behavior without premature caching/reservation |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |
