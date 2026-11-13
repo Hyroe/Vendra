@@ -72,6 +72,9 @@ def api_exception_handler(exc, context):
     request = context.get("request")
     request_id = getattr(request, "request_id", None)
 
+    if isinstance(exc, (NotAuthenticated, AuthenticationFailed)):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+
     if response is None:
         logger.exception("Unhandled API exception", extra={"request_id": request_id})
         return Response(

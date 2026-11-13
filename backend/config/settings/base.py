@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "rest_framework",
     "apps.accounts",
+    "apps.stores",
 ]
 
 MIDDLEWARE = [
@@ -95,8 +96,14 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.ScopedRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "login": "10/min",
+        "register": "5/min",
+    },
     "EXCEPTION_HANDLER": "common.exceptions.api_exception_handler",
-    "UNAUTHENTICATED_USER": None,
 }
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
