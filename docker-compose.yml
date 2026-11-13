@@ -16,6 +16,32 @@ services:
       retries: 10
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+
   api:
     build:
       context: ./backend
@@ -30,12 +56,64 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-localhub}:${POSTGRES_PASSWORD:-localhub}@db:5432/${POSTGRES_DB:-localhub}
       DATABASE_CONN_MAX_AGE: ${DATABASE_CONN_MAX_AGE:-0}
       DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:-5}
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672//
+      FAKE_PAYMENT_ENABLED: ${FAKE_PAYMENT_ENABLED:-False}
     ports:
       - "${API_PORT:-8000}:8000"
     volumes:
       - ./backend:/app
     depends_on:
       db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+      target: development
+    command: celery -A config worker -l info
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-insecure-development-key-change-me}
+      DATABASE_URL: postgres://${POSTGRES_USER:-localhub}:${POSTGRES_PASSWORD:-localhub}@db:5432/${POSTGRES_DB:-localhub}
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672//
+      FAKE_PAYMENT_ENABLED: ${FAKE_PAYMENT_ENABLED:-False}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  beat:
+    build:
+      context: ./backend
+      target: development
+    command: celery -A config beat -l info
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-insecure-development-key-change-me}
+      DATABASE_URL: postgres://${POSTGRES_USER:-localhub}:${POSTGRES_PASSWORD:-localhub}@db:5432/${POSTGRES_DB:-localhub}
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672//
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     restart: unless-stopped
 

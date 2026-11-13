@@ -4,6 +4,9 @@ DEBUG = False
 SECRET_KEY = "test-secret-key-not-for-production"
 ALLOWED_HOSTS = ["testserver"]
 
+FAKE_PAYMENT_ENABLED = True
+CELERY_TASK_ALWAYS_EAGER = True
+
 from .base import REST_FRAMEWORK as BASE_REST_FRAMEWORK  # noqa: E402
 
 PASSWORD_HASHERS = [

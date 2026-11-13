@@ -216,3 +216,75 @@ class ApiIdempotencyKey(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user_id}:{self.scope}:{self.key}"
+
+
+class PaymentEvent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    provider = models.CharField(max_length=64)
+    provider_event_id = models.CharField(max_length=255)
+    payment_attempt = models.ForeignKey(
+        PaymentAttempt,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+    )
+    event_type = models.CharField(max_length=64)
+    received_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "orders_payment_event"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "provider_event_id"],
+                name="orders_payment_event_provider_event_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.provider}:{self.provider_event_id}"
+
+
+class OutboxEvent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    aggregate_type = models.CharField(max_length=64)
+    aggregate_id = models.UUIDField()
+    event_type = models.CharField(max_length=64)
+    schema_version = models.PositiveSmallIntegerField(default=1)
+    payload = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+    attempt_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = "orders_outbox_event"
+        indexes = [
+            models.Index(fields=["published_at", "created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.event_type}:{self.aggregate_id}"
+
+
+class ProcessedEvent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event = models.ForeignKey(
+        OutboxEvent,
+        on_delete=models.CASCADE,
+        related_name="processing_receipts",
+    )
+    handler = models.CharField(max_length=128)
+    processed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "orders_processed_event"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["event", "handler"],
+                name="orders_processed_event_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.event_id}:{self.handler}"

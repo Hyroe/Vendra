@@ -4,6 +4,8 @@ import uuid
 from decimal import Decimal
 
 from django.db import IntegrityError, transaction
+from django.db.models import F
+from django.utils import timezone
 
 from apps.carts.models import Cart
 from apps.catalog.models import Inventory
@@ -15,7 +17,9 @@ from .models import (
     OrderItem,
     OrderStatus,
     OrderTransition,
+    OutboxEvent,
     PaymentAttempt,
+    PaymentEvent,
     PaymentStatus,
     ReservationStatus,
 )
@@ -258,3 +262,155 @@ def release_reservation_for_order(order):
             inventory.save(update_fields=["reserved", "updated_at"])
             reservation.status = ReservationStatus.RELEASED
             reservation.save(update_fields=["status"])
+
+
+def simulate_payment(*, attempt_id, outcome, event_id=None, actor=None):
+    if outcome not in {"succeeded", "failed"}:
+        raise ValueError("outcome must be 'succeeded' or 'failed'.")
+
+    provider = "fake"
+    provider_event_id = event_id or f"fake-{attempt_id}-{outcome}-{uuid.uuid4()}"
+
+    try:
+        with transaction.atomic():
+            event = PaymentEvent.objects.create(
+                provider=provider,
+                provider_event_id=provider_event_id,
+                payment_attempt_id=attempt_id,
+                event_type=f"payment.{outcome}",
+            )
+        event_created = True
+    except IntegrityError:
+        event = PaymentEvent.objects.get(provider=provider, provider_event_id=provider_event_id)
+        event_created = False
+
+    if not event_created:
+        return {"status": "duplicate", "order_status": None}
+
+    with transaction.atomic():
+        attempt = PaymentAttempt.objects.select_for_update().get(pk=attempt_id)
+        order = Order.objects.select_for_update().get(pk=attempt.order_id)
+        event.payment_attempt = attempt
+        event.save(update_fields=["payment_attempt"])
+
+        if attempt.status in {
+            PaymentStatus.SUCCEEDED,
+            PaymentStatus.FAILED,
+            PaymentStatus.CANCELLED,
+        }:
+            event.processed_at = timezone.now()
+            event.save(update_fields=["processed_at"])
+            return {"status": "already_terminal", "order_status": order.status}
+
+        if outcome == "succeeded":
+            if order.status == OrderStatus.PAYMENT_PENDING:
+                product_ids = sorted(
+                    {item.product_id for item in order.items.select_related("product")}
+                )
+                inventories = {
+                    inv.product_id: inv
+                    for inv in Inventory.objects.select_for_update().filter(
+                        product_id__in=product_ids
+                    )
+                }
+                for order_item in order.items.select_related("product"):
+                    reservation = getattr(order_item, "reservation", None)
+                    if reservation is None or reservation.status != ReservationStatus.RESERVED:
+                        continue
+                    inventory = inventories[reservation.product_id]
+                    inventory.on_hand = max(0, inventory.on_hand - reservation.quantity)
+                    inventory.reserved = max(0, inventory.reserved - reservation.quantity)
+                    inventory.save(update_fields=["on_hand", "reserved", "updated_at"])
+                    reservation.status = ReservationStatus.COMMITTED
+                    reservation.save(update_fields=["status"])
+
+                OrderTransition.objects.create(
+                    order=order,
+                    from_status=order.status,
+                    to_status=OrderStatus.PAID,
+                    actor=actor,
+                    reason="fake_payment_succeeded",
+                )
+                order.status = OrderStatus.PAID
+                order.save(update_fields=["status", "updated_at"])
+                attempt.status = PaymentStatus.SUCCEEDED
+                attempt.save(update_fields=["status"])
+                OutboxEvent.objects.create(
+                    aggregate_type="order",
+                    aggregate_id=order.id,
+                    event_type="payment.succeeded.v1",
+                    payload={"order_id": str(order.id), "payment_attempt_id": str(attempt.id)},
+                )
+            else:
+                attempt.status = PaymentStatus.SUCCEEDED
+                attempt.save(update_fields=["status"])
+                OutboxEvent.objects.create(
+                    aggregate_type="order",
+                    aggregate_id=order.id,
+                    event_type="payment.late_success.v1",
+                    payload={"order_id": str(order.id), "payment_attempt_id": str(attempt.id)},
+                )
+        else:
+            if order.status == OrderStatus.PAYMENT_PENDING:
+                product_ids = sorted(
+                    {item.product_id for item in order.items.select_related("product")}
+                )
+                inventories = {
+                    inv.product_id: inv
+                    for inv in Inventory.objects.select_for_update().filter(
+                        product_id__in=product_ids
+                    )
+                }
+                for order_item in order.items.select_related("product"):
+                    reservation = getattr(order_item, "reservation", None)
+                    if reservation is None or reservation.status != ReservationStatus.RESERVED:
+                        continue
+                    inventory = inventories[reservation.product_id]
+                    inventory.reserved = max(0, inventory.reserved - reservation.quantity)
+                    inventory.save(update_fields=["reserved", "updated_at"])
+                    reservation.status = ReservationStatus.RELEASED
+                    reservation.save(update_fields=["status"])
+
+                OrderTransition.objects.create(
+                    order=order,
+                    from_status=order.status,
+                    to_status=OrderStatus.PAYMENT_FAILED,
+                    actor=actor,
+                    reason="fake_payment_failed",
+                )
+                order.status = OrderStatus.PAYMENT_FAILED
+                order.save(update_fields=["status", "updated_at"])
+
+            attempt.status = PaymentStatus.FAILED
+            attempt.save(update_fields=["status"])
+            OutboxEvent.objects.create(
+                aggregate_type="order",
+                aggregate_id=order.id,
+                event_type="payment.failed.v1",
+                payload={"order_id": str(order.id), "payment_attempt_id": str(attempt.id)},
+            )
+
+        event.processed_at = timezone.now()
+        event.save(update_fields=["processed_at"])
+
+        return {"status": outcome, "order_status": order.status}
+
+
+def dispatch_outbox_events():
+    events = list(
+        OutboxEvent.objects.filter(published_at__isnull=True).order_by("created_at")[:100]
+    )
+    for event in events:
+        try:
+            with transaction.atomic():
+                locked = OutboxEvent.objects.select_for_update(skip_locked=True).get(
+                    pk=event.pk, published_at__isnull=True
+                )
+                from .tasks import process_outbox_event
+
+                process_outbox_event.delay(str(locked.id))
+                locked.published_at = timezone.now()
+                locked.attempt_count += 1
+                locked.save(update_fields=["published_at", "attempt_count"])
+        except Exception:
+            OutboxEvent.objects.filter(pk=event.pk).update(attempt_count=F("attempt_count") + 1)

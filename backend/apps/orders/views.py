@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import Http404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +13,7 @@ from .services import (
     InvalidOrderTransition,
     cancel_order,
     checkout,
+    simulate_payment,
 )
 
 
@@ -145,6 +147,50 @@ class SellerOrderListView(APIView):
         if orders is None:
             raise Http404
         return Response([_serialize_order(order) for order in orders])
+
+
+class DevPaymentSimulateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        if not getattr(settings, "FAKE_PAYMENT_ENABLED", False) or not request.user.is_staff:
+            raise Http404
+
+        attempt_id = self.kwargs["attempt_id"]
+        outcome = request.data.get("outcome")
+        if outcome not in {"succeeded", "failed"}:
+            return Response(
+                {
+                    "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "outcome must be 'succeeded' or 'failed'.",
+                        "request_id": getattr(request, "request_id", None),
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        event_id = request.data.get("event_id")
+        try:
+            result = simulate_payment(
+                attempt_id=attempt_id,
+                outcome=outcome,
+                event_id=event_id,
+                actor=request.user,
+            )
+        except Exception as exc:
+            return Response(
+                {
+                    "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": str(exc),
+                        "request_id": getattr(request, "request_id", None),
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)
 
 
 def _serialize_order(order):

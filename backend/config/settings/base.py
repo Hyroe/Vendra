@@ -109,7 +109,21 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "common.exceptions.api_exception_handler",
 }
 
-SECURE_CONTENT_TYPE_NOSNIFF = True
+FAKE_PAYMENT_ENABLED = env.bool("FAKE_PAYMENT_ENABLED", default=False)
+
+CELERY_BROKER_URL = env("RABBITMQ_URL", default="amqp://guest:guest@rabbitmq:5672//")
+CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://redis:6379/0")
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TIMEZONE = "UTC"
+CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)
+CELERY_BEAT_SCHEDULE = {
+    "dispatch-outbox": {
+        "task": "apps.orders.tasks.dispatch_outbox",
+        "schedule": 10.0,
+    },
+}
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 SESSION_COOKIE_SAMESITE = "Lax"

@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    DevPaymentSimulateView,
     OrderCancelView,
     OrderDetailView,
     OrderListCreateView,
@@ -15,5 +16,10 @@ urlpatterns = [
         "seller/stores/<uuid:store_id>/orders",
         SellerOrderListView.as_view(),
         name="seller-order-list",
+    ),
+    path(
+        "dev/payments/<uuid:attempt_id>/simulate",
+        DevPaymentSimulateView.as_view(),
+        name="dev-payment-simulate",
     ),
 ]
