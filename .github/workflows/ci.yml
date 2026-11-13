@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: localhub
+          POSTGRES_USER: localhub
+          POSTGRES_PASSWORD: localhub
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U localhub -d localhub"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.test
+      DATABASE_URL: postgres://localhub:localhub@localhost:5432/localhub
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/development.txt
+
+      - name: Lint
+        working-directory: backend
+        run: ruff check .
+
+      - name: Format check
+        working-directory: backend
+        run: ruff format --check .
+
+      - name: Django system checks
+        working-directory: backend
+        run: python manage.py check
+
+      - name: Migration drift check
+        working-directory: backend
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Backend tests
+        working-directory: backend
+        run: pytest
+
+      - name: Validate Compose configuration
+        run: docker compose config
