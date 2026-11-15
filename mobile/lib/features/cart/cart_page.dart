@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/api_client.dart';
 import '../../core/api_exception.dart';
@@ -97,7 +97,7 @@ class _CartPageState extends State<CartPage> {
               Expanded(
                 child: ListView.separated(
                   itemCount: items.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final item = items[index] as Map<String, dynamic>;
                     final productId = item['product_id'].toString();
@@ -110,11 +110,13 @@ class _CartPageState extends State<CartPage> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.remove),
-                            onPressed: () => _updateQuantity(productId, quantity - 1),
+                            onPressed: () =>
+                                _updateQuantity(productId, quantity - 1),
                           ),
                           IconButton(
                             icon: const Icon(Icons.add),
-                            onPressed: () => _updateQuantity(productId, quantity + 1),
+                            onPressed: () =>
+                                _updateQuantity(productId, quantity + 1),
                           ),
                         ],
                       ),
@@ -134,7 +136,9 @@ class _CartPageState extends State<CartPage> {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Text(
                           _error!,
-                          style: TextStyle(color: Theme.of(context).colorScheme.error),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
                       ),
                     FilledButton(

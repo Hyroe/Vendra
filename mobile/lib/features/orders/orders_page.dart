@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/api_client.dart';
 import '../../core/api_exception.dart';
@@ -23,7 +23,9 @@ class _OrdersPageState extends State<OrdersPage> {
 
   Future<List<Map<String, dynamic>>> _loadOrders() async {
     final response = await widget.api.orders();
-    return (response['results'] as List?)?.whereType<Map<String, dynamic>>().toList() ??
+    return (response['results'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .toList() ??
         <Map<String, dynamic>>[];
   }
 
@@ -63,12 +65,14 @@ class _OrdersPageState extends State<OrdersPage> {
           }
           return ListView.separated(
             itemCount: orders.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final order = orders[index];
               return ListTile(
                 title: Text('Order ${order['id']}'),
-                subtitle: Text('${order['status']} • \$${order['grand_total'] ?? '0.00'}'),
+                subtitle: Text(
+                  '${order['status']} • \$${order['grand_total'] ?? '0.00'}',
+                ),
               );
             },
           );

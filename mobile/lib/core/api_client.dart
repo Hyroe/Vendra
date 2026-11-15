@@ -9,7 +9,8 @@ class ApiClient {
   final String baseUrl;
   String? csrfToken;
 
-  ApiClient({http.Client? client, required this.baseUrl}) : _client = client ?? http.Client();
+  ApiClient({http.Client? client, required this.baseUrl})
+    : _client = client ?? http.Client();
 
   Future<Map<String, dynamic>> _send(
     String method,
@@ -65,25 +66,43 @@ class ApiClient {
       }
     }
 
-    throw ApiException(code: code, message: message, statusCode: response.statusCode);
+    throw ApiException(
+      code: code,
+      message: message,
+      statusCode: response.statusCode,
+    );
   }
 
   Future<Map<String, dynamic>> get(String path) => _send('GET', path);
 
-  Future<Map<String, dynamic>> post(String path, {Object? body, Map<String, String>? headers}) =>
-      _send('POST', path, body: body, headers: headers);
+  Future<Map<String, dynamic>> post(
+    String path, {
+    Object? body,
+    Map<String, String>? headers,
+  }) => _send('POST', path, body: body, headers: headers);
 
-  Future<Map<String, dynamic>> put(String path, {Object? body, Map<String, String>? headers}) =>
-      _send('PUT', path, body: body, headers: headers);
+  Future<Map<String, dynamic>> put(
+    String path, {
+    Object? body,
+    Map<String, String>? headers,
+  }) => _send('PUT', path, body: body, headers: headers);
 
-  Future<Map<String, dynamic>> delete(String path, {Map<String, String>? headers}) =>
-      _send('DELETE', path, headers: headers);
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, String>? headers,
+  }) => _send('DELETE', path, headers: headers);
 
-  Future<Map<String, dynamic>> register({required String email, required String password}) {
+  Future<Map<String, dynamic>> register({
+    required String email,
+    required String password,
+  }) {
     return post('/auth/register', body: {'email': email, 'password': password});
   }
 
-  Future<Map<String, dynamic>> login({required String email, required String password}) {
+  Future<Map<String, dynamic>> login({
+    required String email,
+    required String password,
+  }) {
     return post('/auth/login', body: {'email': email, 'password': password});
   }
 
@@ -108,7 +127,9 @@ class ApiClient {
     final params = <String, String>{};
     if (storeId != null) params['store_id'] = storeId;
     if (search != null && search.isNotEmpty) params['search'] = search;
-    final query = params.isEmpty ? '' : '?${Uri(queryParameters: params).query}';
+    final query = params.isEmpty
+        ? ''
+        : '?${Uri(queryParameters: params).query}';
     return get('/products$query');
   }
 
@@ -140,7 +161,7 @@ class ApiClient {
   }) {
     return post(
       '/dev/payments/$attemptId/simulate',
-      body: {'outcome': outcome, if (eventId != null) 'event_id': eventId},
+      body: {'outcome': outcome, 'event_id': ?eventId},
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/api_client.dart';
 import '../../core/api_exception.dart';
@@ -94,7 +94,7 @@ class _CatalogPageState extends State<CatalogPage> {
                 }
                 return ListView.separated(
                   itemCount: products.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final product = products[index];
                     return ListTile(

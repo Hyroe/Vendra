@@ -1,6 +1,6 @@
 name: localhub
 description: "LocalHub customer app."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0+1
 
 environment:
@@ -12,6 +12,7 @@ dependencies:
   http: ^1.2.2
   shared_preferences: ^2.3.3
 
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

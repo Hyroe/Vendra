@@ -18,10 +18,47 @@ class LocalHubApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1B5E20)),
         useMaterial3: true,
       ),
-      home: LoginPage(api: api),
-      routes: {
-        '/catalog': (context) => CatalogPage(api: api),
-      },
+      home: _Bootstrap(api: api),
     );
+  }
+}
+
+class _Bootstrap extends StatefulWidget {
+  final ApiClient api;
+
+  const _Bootstrap({required this.api});
+
+  @override
+  State<_Bootstrap> createState() => _BootstrapState();
+}
+
+class _BootstrapState extends State<_Bootstrap> {
+  bool _checking = true;
+  Widget? _next;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    try {
+      await widget.api.me();
+      _next = CatalogPage(api: widget.api);
+    } catch (_) {
+      _next = LoginPage(api: widget.api);
+    }
+    if (mounted) {
+      setState(() => _checking = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_checking) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return _next ?? const SizedBox.shrink();
   }
 }

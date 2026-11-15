@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/api_client.dart';
 import '../../core/api_exception.dart';
@@ -7,7 +7,11 @@ class ProductDetailPage extends StatefulWidget {
   final ApiClient api;
   final String productId;
 
-  const ProductDetailPage({super.key, required this.api, required this.productId});
+  const ProductDetailPage({
+    super.key,
+    required this.api,
+    required this.productId,
+  });
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -36,7 +40,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       _message = null;
     });
     try {
-      await widget.api.addCartItem(productId: widget.productId, quantity: _quantity);
+      await widget.api.addCartItem(
+        productId: widget.productId,
+        quantity: _quantity,
+      );
       if (!mounted) return;
       setState(() => _message = 'Added to cart.');
     } on ApiException catch (e) {
@@ -70,7 +77,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           final inventory = product['inventory'] as Map<String, dynamic>?;
           final available = inventory == null
               ? 0
-              : (inventory['on_hand'] as num).toInt() - (inventory['reserved'] as num).toInt();
+              : (inventory['on_hand'] as num).toInt() -
+                    (inventory['reserved'] as num).toInt();
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -92,7 +100,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   const Text('Quantity'),
                   const SizedBox(width: 12),
                   IconButton(
-                    onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                    onPressed: _quantity > 1
+                        ? () => setState(() => _quantity--)
+                        : null,
                     icon: const Icon(Icons.remove),
                   ),
                   Text('$_quantity'),

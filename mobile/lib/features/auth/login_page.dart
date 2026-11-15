@@ -28,6 +28,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
     setState(() {
       _loading = true;
       _error = null;
@@ -57,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
@@ -76,17 +77,18 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (value) =>
-                        (value == null || value.isEmpty) ? 'Email is required' : null,
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? 'Email is required'
+                        : null,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField
-                    (
+                  TextFormField(
                     controller: _passwordController,
                     obscureText: true,
                     decoration: const InputDecoration(labelText: 'Password'),
-                    validator: (value) =>
-                        (value == null || value.length < 8) ? 'Password must be at least 8 characters' : null,
+                    validator: (value) => (value == null || value.length < 8)
+                        ? 'Password must be at least 8 characters'
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   if (_error != null)
@@ -94,7 +96,9 @@ class _LoginPageState extends State<LoginPage> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Text(
                         _error!,
-                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                       ),
                     ),
                   FilledButton(
