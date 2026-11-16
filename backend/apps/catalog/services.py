@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.db import transaction
 
+from .cache import invalidate_catalog_cache
 from .models import Inventory, Product
 
 
@@ -25,6 +26,7 @@ def create_product(
             is_published=is_published,
         )
         Inventory.objects.create(product=product, on_hand=initial_stock, reserved=0)
+    invalidate_catalog_cache()
     return product
 
 
@@ -32,6 +34,7 @@ def update_product(*, product: Product, **fields) -> Product:
     for field, value in fields.items():
         setattr(product, field, value)
     product.save()
+    invalidate_catalog_cache()
     return product
 
 
@@ -43,4 +46,5 @@ def adjust_inventory(*, product: Product, on_hand: int) -> Inventory:
         raise ValueError("on_hand cannot be less than reserved stock.")
     inventory.on_hand = on_hand
     inventory.save(update_fields=["on_hand", "updated_at"])
+    invalidate_catalog_cache()
     return inventory

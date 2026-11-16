@@ -18,6 +18,9 @@
 | ADR-013 | Catalog/inventory baseline: store-scoped products, companion inventory, publication gate, server-side filters/search, absolute auditable stock adjustment | M2 catalog behavior without premature caching/reservation |
 | ADR-014 | Cart/checkout/orders baseline: one-store carts, server-side totals, row-locked reservation, idempotent checkout, pending cancellation with release | M3 checkout correctness and retry safety |
 | ADR-015 | Fake payments/outbox baseline: staff-only simulation, provider-event dedup, atomic paid/failed transitions, same-transaction outbox, Celery/RabbitMQ/Redis and skip-locked dispatch | M4 reliable async payment workflow |
+| ADR-016 | Mobile authentication transport development default: session cookies + CSRF, no production token scheme | M5 unblocks Flutter without resolving OPEN-001 |
+| ADR-017 | Flutter customer app baseline: http client, session/CSRF, feature pages, API exception parsing, Sentry dev default | M5 mobile baseline while OPEN-001 remains open |
+| ADR-018 | Seller fulfillment/observability baseline: explicit transitions, Redis cache/rate limits, JSON logs, Sentry, Bandit/pip-audit, k6 scripts | M6 operational baseline without production-readiness claims |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |

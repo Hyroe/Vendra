@@ -5,8 +5,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Order
-from .selectors import order_for_customer, orders_for_customer, orders_for_store
+from .fulfillment import transition_order
+from .selectors import (
+    order_for_customer,
+    order_for_store_user,
+    orders_for_customer,
+    orders_for_store,
+)
 from .services import (
     IdempotencyConflict,
     InsufficientStock,
@@ -107,11 +112,8 @@ class OrderDetailView(APIView):
     def get(self, request, *args, **kwargs):
         order = order_for_customer(customer=request.user, order_id=self.kwargs["order_id"])
         if order is None:
-            # Allow authorized sellers to read their store orders.
-            from apps.stores.selectors import store_for_user
-
-            order = Order.objects.filter(pk=self.kwargs["order_id"]).first()
-            if order is None or store_for_user(user=request.user, store_id=order.store_id) is None:
+            order = order_for_store_user(user=request.user, order_id=self.kwargs["order_id"])
+            if order is None:
                 raise Http404
         return Response(_serialize_order_detail(order))
 
@@ -143,10 +145,55 @@ class SellerOrderListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        orders = orders_for_store(user=request.user, store_id=self.kwargs["store_id"])
+        status_filter = request.query_params.get("status")
+        orders = orders_for_store(
+            user=request.user,
+            store_id=self.kwargs["store_id"],
+            status=status_filter,
+        )
         if orders is None:
             raise Http404
         return Response([_serialize_order(order) for order in orders])
+
+
+class SellerOrderTransitionView(APIView):
+    permission_classes = [IsAuthenticated]
+    target_status = None
+
+    def post(self, request, *args, **kwargs):
+        order = order_for_store_user(user=request.user, order_id=self.kwargs["order_id"])
+        if order is None:
+            raise Http404
+        try:
+            order = transition_order(
+                order=order,
+                to_status=self.target_status,
+                actor=request.user,
+            )
+        except InvalidOrderTransition as exc:
+            return Response(
+                {
+                    "error": {
+                        "code": "ORDER_CONFLICT",
+                        "message": str(exc),
+                        "request_id": getattr(request, "request_id", None),
+                    }
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(_serialize_order_detail(order))
+
+
+class SellerOrderAcceptView(SellerOrderTransitionView):
+    target_status = "ACCEPTED"
+
+
+class SellerOrderPrepareView(SellerOrderTransitionView):
+    target_status = "PREPARING"
+
+
+class SellerOrderReadyView(SellerOrderTransitionView):
+    target_status = "READY_FOR_PICKUP"
 
 
 class DevPaymentSimulateView(APIView):

@@ -66,5 +66,33 @@ jobs:
         working-directory: backend
         run: pytest
 
+      - name: Bandit security scan
+        working-directory: backend
+        run: bandit -r apps common config -ll
+
+      - name: Dependency audit
+        working-directory: backend
+        run: pip-audit -r requirements/base.txt
+
       - name: Validate Compose configuration
         run: docker compose config
+
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.50.0'
+          channel: 'stable'
+
+      - name: Flutter analyze
+        working-directory: mobile
+        run: flutter analyze
+
+      - name: Flutter tests
+        working-directory: mobile
+        run: flutter test

@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from apps.stores.selectors import store_for_user
 
+from .cache import catalog_cache_key, safe_cache_get, safe_cache_set
 from .models import Product
 from .permissions import IsProductStoreMember
 from .selectors import public_product_detail, search_products
@@ -34,20 +35,35 @@ class PublicProductListView(GenericAPIView):
     def get(self, request):
         store_id = request.query_params.get("store_id")
         search = request.query_params.get("search")
+        page = request.query_params.get("page", "1")
+        cache_key = catalog_cache_key("list", store_id or "", search or "", page)
+        cached = safe_cache_get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
         queryset = search_products(store_id=store_id, search=search)
-        page = self.paginate_queryset(queryset)
-        serializer = ProductSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
+        page_obj = self.paginate_queryset(queryset)
+        serializer = ProductSerializer(page_obj, many=True)
+        response = self.get_paginated_response(serializer.data)
+        safe_cache_set(cache_key, response.data, timeout=30)
+        return response
 
 
 class PublicProductDetailView(GenericAPIView):
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
+        cache_key = catalog_cache_key("detail", self.kwargs["product_id"])
+        cached = safe_cache_get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
         product = public_product_detail(product_id=self.kwargs["product_id"])
         if product is None:
             raise Http404
-        return Response(ProductSerializer(product).data)
+        data = ProductSerializer(product).data
+        safe_cache_set(cache_key, data, timeout=30)
+        return Response(data)
 
 
 class SellerProductCreateView(APIView):

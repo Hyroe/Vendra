@@ -13,6 +13,7 @@ dependencies:
   shared_preferences: ^2.3.3
 
   material_ui: any
+  sentry_flutter: ^10.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -5,7 +5,10 @@ from .views import (
     OrderCancelView,
     OrderDetailView,
     OrderListCreateView,
+    SellerOrderAcceptView,
     SellerOrderListView,
+    SellerOrderPrepareView,
+    SellerOrderReadyView,
 )
 
 urlpatterns = [
@@ -16,6 +19,21 @@ urlpatterns = [
         "seller/stores/<uuid:store_id>/orders",
         SellerOrderListView.as_view(),
         name="seller-order-list",
+    ),
+    path(
+        "seller/orders/<uuid:order_id>/accept",
+        SellerOrderAcceptView.as_view(),
+        name="seller-order-accept",
+    ),
+    path(
+        "seller/orders/<uuid:order_id>/prepare",
+        SellerOrderPrepareView.as_view(),
+        name="seller-order-prepare",
+    ),
+    path(
+        "seller/orders/<uuid:order_id>/ready",
+        SellerOrderReadyView.as_view(),
+        name="seller-order-ready",
     ),
     path(
         "dev/payments/<uuid:attempt_id>/simulate",

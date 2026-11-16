@@ -5,7 +5,7 @@ DEBUG = env.bool("DEBUG", default=True)
 
 ALLOWED_HOSTS = env.list(
     "ALLOWED_HOSTS",
-    default=["localhost", "127.0.0.1", "0.0.0.0"],
+    default=["localhost", "127.0.0.1", "0.0.0.0"],  # nosec B104
 )
 
 CSRF_TRUSTED_ORIGINS = [
