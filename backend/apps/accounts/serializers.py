@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.accounts.models import User
+from apps.accounts.models import MobileSession, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -40,3 +40,18 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
+
+
+class MobileSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileSession
+        fields = [
+            "id",
+            "device_id",
+            "device_name",
+            "created_at",
+            "last_used_at",
+            "revoked_at",
+            "refresh_expires_at",
+        ]
+        read_only_fields = fields

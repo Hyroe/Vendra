@@ -94,6 +94,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
+        "apps.accounts.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -155,7 +156,9 @@ LOGGING = {
     },
 }
 
-FAKE_PAYMENT_ENABLED = env.bool("FAKE_PAYMENT_ENABLED", default=False)
+JWT_SECRET_KEY = env("JWT_SECRET_KEY", default=SECRET_KEY)
+JWT_ACCESS_TTL_MINUTES = env.int("JWT_ACCESS_TTL_MINUTES", default=15)
+JWT_REFRESH_TTL_DAYS = env.int("JWT_REFRESH_TTL_DAYS", default=30)
 
 CELERY_BROKER_URL = env("RABBITMQ_URL", default="amqp://guest:guest@rabbitmq:5672//")
 CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://redis:6379/0")

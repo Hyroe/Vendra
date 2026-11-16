@@ -6,3 +6,4 @@ gunicorn>=23.0,<24.0
 celery>=5.4,<5.5
 redis>=5.2,<5.3
 sentry-sdk>=2.0,<3.0
+PyJWT>=2.9,<3.0

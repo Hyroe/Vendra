@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:localhub/core/api_client.dart';
 import 'package:localhub/features/auth/login_page.dart';
@@ -7,7 +7,9 @@ void main() {
   testWidgets('login page renders', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: LoginPage(api: ApiClient(baseUrl: 'http://localhost:8000/api/v1')),
+        home: LoginPage(
+          api: ApiClient(baseUrl: 'http://localhost:8000/api/v1'),
+        ),
       ),
     );
     await tester.pump();

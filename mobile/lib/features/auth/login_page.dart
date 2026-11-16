@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/api_client.dart';
 import '../../core/api_exception.dart';
@@ -45,7 +45,9 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _error = e.message);
     } catch (_) {
       if (!mounted) return;
-      setState(() => _error = 'Network error. Check that the backend is running.');
+      setState(
+        () => _error = 'Network error. Check that the backend is running.',
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }

@@ -23,6 +23,7 @@
 | ADR-018 | Seller fulfillment/observability baseline: explicit transitions, Redis cache/rate limits, JSON logs, Sentry, Bandit/pip-audit, k6 scripts | M6 operational baseline without production-readiness claims |
 | ADR-019 | Logistics baseline: delivery assignment by store member, courier-only transitions, event history, separate delivery state | M7 courier lifecycle without automatic dispatch |
 | ADR-020 | Real payment provider and operational hardening proposed: no provider selected, webhook/reconciliation requirements, refund policy pending | M8 review and hardening without production claim |
+| ADR-021 | Mobile authentication tokens: JWT access + rotating opaque refresh, secure storage, session revocation | closes OPEN-001 as a development default |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |

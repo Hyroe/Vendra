@@ -1,17 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'core/api_client.dart';
 import 'features/auth/login_page.dart';
 import 'features/catalog/catalog_page.dart';
 
 class LocalHubApp extends StatelessWidget {
-  final String apiBaseUrl;
+  final ApiClient api;
 
-  const LocalHubApp({super.key, required this.apiBaseUrl});
+  const LocalHubApp({super.key, required this.api});
 
   @override
   Widget build(BuildContext context) {
-    final api = ApiClient(baseUrl: apiBaseUrl);
     return MaterialApp(
       title: 'LocalHub',
       theme: ThemeData(

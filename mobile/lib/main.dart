@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'app.dart';
+import 'core/api_client.dart';
 import 'core/api_config.dart';
 
 Future<void> main() async {
@@ -16,5 +17,8 @@ Future<void> main() async {
       },
     );
   }
-  runApp(const LocalHubApp(apiBaseUrl: kDefaultApiBaseUrl));
+
+  final api = ApiClient(baseUrl: kDefaultApiBaseUrl);
+  await api.loadTokens();
+  runApp(LocalHubApp(api: api));
 }

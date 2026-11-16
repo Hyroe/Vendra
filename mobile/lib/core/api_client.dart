@@ -3,20 +3,69 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'api_exception.dart';
+import 'token_storage.dart';
 
 class ApiClient {
   final http.Client _client;
   final String baseUrl;
-  String? csrfToken;
+  final TokenStorage storage;
 
-  ApiClient({http.Client? client, required this.baseUrl})
-    : _client = client ?? http.Client();
+  String? _accessToken;
+  String? _refreshToken;
+  bool _refreshing = false;
+
+  ApiClient({http.Client? client, required this.baseUrl, TokenStorage? storage})
+    : _client = client ?? http.Client(),
+      storage = storage ?? const TokenStorage();
+
+  Future<void> loadTokens() async {
+    _accessToken = await storage.readAccessToken();
+    _refreshToken = await storage.readRefreshToken();
+  }
+
+  Future<void> saveTokens(Map<String, dynamic> tokens) async {
+    _accessToken = tokens['access']?.toString();
+    _refreshToken = tokens['refresh']?.toString();
+    if (_accessToken != null && _refreshToken != null) {
+      await storage.writeTokens(
+        accessToken: _accessToken!,
+        refreshToken: _refreshToken!,
+      );
+    }
+  }
+
+  Future<void> clearTokens() async {
+    _accessToken = null;
+    _refreshToken = null;
+    await storage.clear();
+  }
+
+  Future<bool> _refreshAccessToken() async {
+    if (_refreshing || _refreshToken == null) return false;
+    _refreshing = true;
+    try {
+      final response = await _send(
+        'POST',
+        '/auth/token/refresh',
+        body: {'refresh_token': _refreshToken},
+        retry: false,
+      );
+      await saveTokens(response);
+      return true;
+    } catch (_) {
+      await clearTokens();
+      return false;
+    } finally {
+      _refreshing = false;
+    }
+  }
 
   Future<Map<String, dynamic>> _send(
     String method,
     String path, {
     Map<String, String>? headers,
     Object? body,
+    bool retry = true,
   }) async {
     final uri = Uri.parse('$baseUrl$path');
     final request = http.Request(method, uri);
@@ -25,8 +74,8 @@ class ApiClient {
     if (headers != null) {
       request.headers.addAll(headers);
     }
-    if (csrfToken != null && method != 'GET' && method != 'HEAD') {
-      request.headers['X-CSRFToken'] = csrfToken!;
+    if (_accessToken != null) {
+      request.headers['Authorization'] = 'Bearer $_accessToken';
     }
     if (body != null) {
       request.body = jsonEncode(body);
@@ -35,13 +84,10 @@ class ApiClient {
     final streamed = await _client.send(request);
     final response = await http.Response.fromStream(streamed);
 
-    final setCookie = response.headers['set-cookie'];
-    if (setCookie != null) {
-      for (final part in setCookie.split(',')) {
-        final match = RegExp(r'csrftoken=([^;]+)').firstMatch(part);
-        if (match != null) {
-          csrfToken = match.group(1);
-        }
+    if (response.statusCode == 401 && retry && _refreshToken != null) {
+      final refreshed = await _refreshAccessToken();
+      if (refreshed) {
+        return _send(method, path, headers: headers, body: body, retry: false);
       }
     }
 
@@ -102,11 +148,28 @@ class ApiClient {
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
-  }) {
-    return post('/auth/login', body: {'email': email, 'password': password});
+  }) async {
+    final response = await post(
+      '/auth/token',
+      body: {'email': email, 'password': password},
+    );
+    await saveTokens(response);
+    return response;
   }
 
-  Future<void> logout() => post('/auth/logout');
+  Future<void> logout() async {
+    if (_refreshToken != null) {
+      try {
+        await post(
+          '/auth/token/revoke',
+          body: {'refresh_token': _refreshToken},
+        );
+      } catch (_) {
+        // ignore revocation failures and clear local state
+      }
+    }
+    await clearTokens();
+  }
 
   Future<Map<String, dynamic>> me() => get('/me');
 
@@ -141,12 +204,12 @@ class ApiClient {
   }) {
     return post(
       '/orders',
-      headers: {'Idempotency-Key': idempotencyKey},
       body: {
         'cart_id': cartId,
         'delivery_address': address ?? <String, dynamic>{},
         'shipping_option_id': shippingOptionId,
       },
+      headers: {'Idempotency-Key': idempotencyKey},
     );
   }
 

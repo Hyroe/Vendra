@@ -9,10 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  material_ui: ^1.1.0
   http: ^1.2.2
   shared_preferences: ^2.3.3
+  flutter_secure_storage: ^9.2.2
 
-  material_ui: any
   sentry_flutter: ^10.4.0
 dev_dependencies:
   flutter_test:
