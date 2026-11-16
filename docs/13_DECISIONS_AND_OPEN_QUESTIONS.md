@@ -21,6 +21,7 @@
 | ADR-016 | Mobile authentication transport development default: session cookies + CSRF, no production token scheme | M5 unblocks Flutter without resolving OPEN-001 |
 | ADR-017 | Flutter customer app baseline: http client, session/CSRF, feature pages, API exception parsing, Sentry dev default | M5 mobile baseline while OPEN-001 remains open |
 | ADR-018 | Seller fulfillment/observability baseline: explicit transitions, Redis cache/rate limits, JSON logs, Sentry, Bandit/pip-audit, k6 scripts | M6 operational baseline without production-readiness claims |
+| ADR-019 | Logistics baseline: delivery assignment by store member, courier-only transitions, event history, separate delivery state | M7 courier lifecycle without automatic dispatch |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |

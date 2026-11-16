@@ -10,6 +10,7 @@ urlpatterns = [
     path("api/v1/", include("apps.catalog.urls")),
     path("api/v1/", include("apps.carts.urls")),
     path("api/v1/", include("apps.orders.urls")),
+    path("api/v1/", include("apps.logistics.urls")),
     re_path(r"^api/v1(?:/.*)?$", api_not_found, name="api_not_found"),
 ]
 
