@@ -1,9 +1,11 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import 'app.dart';
 import 'core/api_client.dart';
 import 'core/api_config.dart';
+import 'core/providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,5 +22,10 @@ Future<void> main() async {
 
   final api = ApiClient(baseUrl: kDefaultApiBaseUrl);
   await api.loadTokens();
-  runApp(LocalHubApp(api: api));
+  runApp(
+    ProviderScope(
+      overrides: [apiClientProvider.overrideWithValue(api)],
+      child: const LocalHubApp(),
+    ),
+  );
 }

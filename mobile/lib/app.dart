@@ -1,16 +1,17 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/api_client.dart';
+import 'core/providers.dart';
 import 'features/auth/login_page.dart';
 import 'features/catalog/catalog_page.dart';
 
-class LocalHubApp extends StatelessWidget {
-  final ApiClient api;
-
-  const LocalHubApp({super.key, required this.api});
+class LocalHubApp extends ConsumerWidget {
+  const LocalHubApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final api = ref.watch(apiClientProvider);
     return MaterialApp(
       title: 'LocalHub',
       theme: ThemeData(
@@ -18,6 +19,10 @@ class LocalHubApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: _Bootstrap(api: api),
+      routes: {
+        '/catalog': (context) => CatalogPage(api: api),
+        '/login': (context) => LoginPage(api: api),
+      },
     );
   }
 }
