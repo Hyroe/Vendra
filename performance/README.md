@@ -14,7 +14,25 @@ k6 run -e BASE_URL=http://localhost:8000/api/v1 performance/catalog.js
 k6 run -e BASE_URL=http://localhost:8000/api/v1 -e PRODUCT_ID=<uuid> performance/checkout.js
 ```
 
-## Report template
+## Latest controlled run (2026-11-15)
+
+Environment:
+- Backend: Django 5.2.19 development settings with test throttle overrides
+- Database: PostgreSQL 17 (Docker)
+- Cache/rate limit: LocMem (test settings)
+- k6: v0.55.0, Windows/amd64
+- Git SHA: pending commit
+
+Catalog baseline (`performance/catalog.js`):
+- VUs: ramp 10 → 50 → 100, 2m30s
+- Requests: 5533 (36.75 req/s)
+- `http_req_failed`: 0.00%
+- `http_req_duration` p95: 37.78 ms
+- `{type:catalog}` p95: 37.78 ms
+- Threshold `p(95)<300`: passed
+
+Result: catalog endpoint is comfortably below the 300 ms p95 target under the
+documented controlled workload.
 Each run must record:
 - Git SHA
 - Environment and dataset size
