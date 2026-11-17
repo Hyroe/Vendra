@@ -9,7 +9,26 @@ executed against a controlled environment with synthetic data.
 k6 run -e BASE_URL=http://localhost:8000/api/v1 performance/catalog.js
 ```
 
-## Run checkout baseline
+## Operational validation (2026-11-17)
+
+### Backup and restore drill
+- `pg_dump` completed successfully.
+- Restore into `localhub_restore_test` completed successfully.
+- Django `check` passed against restored database.
+- `migrate --check` passed against restored database.
+- Restore database dropped after verification.
+
+Result: backup/restore procedure is functional for the development environment.
+
+### Flutter device smoke
+- Debug APK built and installed on `22101320I` (Android 13).
+- App launched successfully (`Displayed` and `Fully drawn`).
+- Backend reachable through `adb reverse tcp:8000`.
+
+### k6 checkout baseline
+- Checkout load testing requires seeded users, carts and inventory.
+- The checkout script remains a template pending a controlled fixture setup.
+- Catalog baseline is the measured k6 result for M6/M8.
 ```bash
 k6 run -e BASE_URL=http://localhost:8000/api/v1 -e PRODUCT_ID=<uuid> performance/checkout.js
 ```
