@@ -27,6 +27,7 @@
 | ADR-022 | Flutter state management: Riverpod for dependency injection and feature state | closes OPEN-002 with a scalable but simple baseline |
 | ADR-023 | Address and ShippingOption: reusable customer addresses, store shipping methods, additive snapshots, backward-compatible checkout | closes OPEN-004 as an additive evolution |
 | ADR-024 | Tax and shipping calculation: dedicated pricing service, shipping from ShippingOption or development fallback, explicit zero-tax development default | closes OPEN-003 as a development default |
+| ADR-025 | Cancellation and refund policy: only PAYMENT_PENDING orders can be cancelled; no refunds or post-payment cancellation in MVP | closes OPEN-006 for MVP scope |
 
 ## Provisionally resolved for development (not production-approved)
 | ID | Issue | Development default / ADR |
@@ -35,11 +36,12 @@
 | OPEN-002 | Flutter state management | Riverpod for dependency injection and feature state (ADR-022). |
 | OPEN-003 | Tax and shipping | Pricing service with shipping from ShippingOption or development fallback; tax explicitly zero in development (ADR-024). Production tax policy remains open. |
 | OPEN-004 | Address storage / checkout request | Address and ShippingOption models with immutable order snapshots (ADR-023). |
+| OPEN-006 | Payment refund/cancel after PAID | MVP allows cancellation only for PAYMENT_PENDING orders; no refunds or post-payment cancellation (ADR-025). |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |
 |---|---|---|
-| OPEN-006 | Payment refund/cancel after PAID | business policy and state transitions required before implementing |
+
 | OPEN-007 | Real payment gateway | Stripe or alternative, after regional/legal review |
 | OPEN-008 | Fulfillment after READY_FOR_PICKUP | synchronize order projection and Delivery without divergent status |
 | OPEN-009 | Production cloud/deployment | select when nonfunctional requirements and budget known |
