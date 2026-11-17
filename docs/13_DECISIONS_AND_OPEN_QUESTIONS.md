@@ -26,19 +26,19 @@
 | ADR-021 | Mobile authentication tokens: JWT access + rotating opaque refresh, secure storage, session revocation | closes OPEN-001 as a development default |
 | ADR-022 | Flutter state management: Riverpod for dependency injection and feature state | closes OPEN-002 with a scalable but simple baseline |
 | ADR-023 | Address and ShippingOption: reusable customer addresses, store shipping methods, additive snapshots, backward-compatible checkout | closes OPEN-004 as an additive evolution |
+| ADR-024 | Tax and shipping calculation: dedicated pricing service, shipping from ShippingOption or development fallback, explicit zero-tax development default | closes OPEN-003 as a development default |
 
 ## Provisionally resolved for development (not production-approved)
 | ID | Issue | Development default / ADR |
 |---|---|---|
 | OPEN-001 | Flutter auth/session model | JWT access + rotating refresh tokens, secure storage, session revocation (ADR-021). Production security review still required. |
 | OPEN-002 | Flutter state management | Riverpod for dependency injection and feature state (ADR-022). |
-| OPEN-004 | Address storage / checkout request | Address and ShippingOption models with immutable order snapshots (ADR-023). Tax and shipping calculation remain open (OPEN-003). |
+| OPEN-003 | Tax and shipping | Pricing service with shipping from ShippingOption or development fallback; tax explicitly zero in development (ADR-024). Production tax policy remains open. |
+| OPEN-004 | Address storage / checkout request | Address and ShippingOption models with immutable order snapshots (ADR-023). |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |
 |---|---|---|
-| OPEN-003 | Tax and shipping | fixed mock shipping + zero tax in isolated fixtures only; replace with jurisdiction-aware requirements before real sales |
-| OPEN-005 | Currency support | USD fixtures; store currency configured, payment capability constrained |
 | OPEN-006 | Payment refund/cancel after PAID | business policy and state transitions required before implementing |
 | OPEN-007 | Real payment gateway | Stripe or alternative, after regional/legal review |
 | OPEN-008 | Fulfillment after READY_FOR_PICKUP | synchronize order projection and Delivery without divergent status |

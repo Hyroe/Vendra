@@ -162,45 +162,26 @@ def checkout(
                 (item.product.unit_price * item.quantity for item in items), Decimal("0.00")
             )
 
-            from apps.stores.models import ShippingOption
+            from .pricing import (
+                calculate_order_totals,
+                calculate_shipping_total,
+                calculate_tax_total,
+            )
 
-            shipping_option = None
-            if shipping_option_id and shipping_option_id != "standard":
-                try:
-                    uuid.UUID(str(shipping_option_id))
-                    shipping_option = ShippingOption.objects.filter(
-                        pk=shipping_option_id, store=store, active=True
-                    ).first()
-                except (ValueError, TypeError):
-                    shipping_option = ShippingOption.objects.filter(
-                        store=store, code=shipping_option_id, active=True
-                    ).first()
-            elif shipping_option_id == "standard":
-                shipping_option = (
-                    ShippingOption.objects.filter(store=store, active=True)
-                    .order_by("price", "name")
-                    .first()
-                )
-
-            if shipping_option is not None:
-                shipping_total = shipping_option.price
-                shipping_option_snapshot = {
-                    "id": str(shipping_option.id),
-                    "code": shipping_option.code,
-                    "name": shipping_option.name,
-                    "price": str(shipping_option.price),
-                }
-            else:
-                shipping_total = Decimal("4.00")
-                shipping_option_snapshot = {
-                    "code": "standard",
-                    "name": "Standard",
-                    "price": "4.00",
-                }
-
-            tax_total = Decimal("0.00")
+            shipping_total, shipping_option_snapshot = calculate_shipping_total(
+                store=store, shipping_option_id=shipping_option_id
+            )
+            tax_total = calculate_tax_total(
+                store=store, address_snapshot=address_snapshot, subtotal=subtotal
+            )
             discount_total = Decimal("0.00")
-            grand_total = subtotal + shipping_total + tax_total - discount_total
+            totals = calculate_order_totals(
+                subtotal=subtotal,
+                shipping_total=shipping_total,
+                tax_total=tax_total,
+                discount_total=discount_total,
+            )
+            grand_total = totals["grand_total"]
 
             order = Order.objects.create(
                 customer=customer,
