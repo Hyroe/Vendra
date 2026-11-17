@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import ShippingOption, Store, StoreStatus
+from .models import ShippingOption, Store, StoreCurrency, StoreStatus
 
 
 class StoreSerializer(serializers.ModelSerializer):
@@ -19,14 +19,18 @@ class StoreSerializer(serializers.ModelSerializer):
 
 
 class StoreCreateSerializer(serializers.ModelSerializer):
+    currency = serializers.CharField(required=False)
+
     class Meta:
         model = Store
         fields = ["name", "currency", "status"]
 
     def validate_currency(self, value):
         value = value.upper()
-        if len(value) != 3 or not value.isalpha():
-            raise serializers.ValidationError("Currency must be a 3-letter ISO code.")
+        if value not in {c.value for c in StoreCurrency}:
+            raise serializers.ValidationError(
+                f"Currency must be one of {[c.value for c in StoreCurrency]}."
+            )
         return value
 
     def validate_status(self, value):
@@ -42,8 +46,10 @@ class StoreUpdateSerializer(serializers.ModelSerializer):
 
     def validate_currency(self, value):
         value = value.upper()
-        if len(value) != 3 or not value.isalpha():
-            raise serializers.ValidationError("Currency must be a 3-letter ISO code.")
+        if value not in {c.value for c in StoreCurrency}:
+            raise serializers.ValidationError(
+                f"Currency must be one of {[c.value for c in StoreCurrency]}."
+            )
         return value
 
     def validate_status(self, value):

@@ -30,6 +30,7 @@
 | ADR-025 | Cancellation and refund policy: only PAYMENT_PENDING orders can be cancelled; no refunds or post-payment cancellation in MVP | closes OPEN-006 for MVP scope |
 | ADR-026 | Order/delivery synchronization: READY_FOR_PICKUP -> DELIVERED only through sync service, idempotent completion | closes OPEN-008 for delivery completion |
 | ADR-027 | Idempotency retention and cleanup: expires_at at creation, configurable retention, cleanup command, no financial mutation | closes OPEN-012 as an operational default |
+| ADR-028 | Currency support baseline: supported currencies limited to USD/EUR/GBP, normalized uppercase, store-scoped orders | closes OPEN-005 as a development default |
 
 ## Provisionally resolved for development (not production-approved)
 | ID | Issue | Development default / ADR |
@@ -41,6 +42,7 @@
 | OPEN-006 | Payment refund/cancel after PAID | MVP allows cancellation only for PAYMENT_PENDING orders; no refunds or post-payment cancellation (ADR-025). |
 | OPEN-008 | Fulfillment after READY_FOR_PICKUP | Delivery completion synchronizes Order to DELIVERED through sync_order_with_delivery (ADR-026). |
 | OPEN-012 | Idempotency response retention | expires_at at creation, configurable retention, cleanup command (ADR-027). |
+| OPEN-005 | Currency support | Supported currencies USD/EUR/GBP, normalized uppercase, store-scoped orders (ADR-028). |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |
