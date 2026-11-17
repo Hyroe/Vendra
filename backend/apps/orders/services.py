@@ -62,14 +62,39 @@ def _serialize_order(order, payment):
 
 
 def checkout(
-    *, customer, cart_id, delivery_address=None, shipping_option_id="standard", idempotency_key=None
+    *,
+    customer,
+    cart_id,
+    delivery_address=None,
+    delivery_address_id=None,
+    shipping_option_id="standard",
+    idempotency_key=None,
 ):
     if not idempotency_key:
         raise ValueError("Idempotency-Key is required.")
 
+    address_snapshot = delivery_address or {}
+    if delivery_address_id is not None:
+        from apps.accounts.models import Address
+
+        address = Address.objects.filter(pk=delivery_address_id, customer=customer).first()
+        if address is None:
+            raise ValueError("Address not found.")
+        address_snapshot = {
+            "id": str(address.id),
+            "label": address.label,
+            "recipient_name": address.recipient_name,
+            "line1": address.line1,
+            "line2": address.line2,
+            "city": address.city,
+            "region": address.region,
+            "postal_code": address.postal_code,
+            "country": address.country,
+        }
+
     payload = {
         "cart_id": str(cart_id),
-        "delivery_address": delivery_address or {},
+        "delivery_address": address_snapshot,
         "shipping_option_id": shipping_option_id,
     }
     request_hash = _request_hash(payload)
@@ -136,7 +161,43 @@ def checkout(
             subtotal = sum(
                 (item.product.unit_price * item.quantity for item in items), Decimal("0.00")
             )
-            shipping_total = Decimal("4.00")
+
+            from apps.stores.models import ShippingOption
+
+            shipping_option = None
+            if shipping_option_id and shipping_option_id != "standard":
+                try:
+                    uuid.UUID(str(shipping_option_id))
+                    shipping_option = ShippingOption.objects.filter(
+                        pk=shipping_option_id, store=store, active=True
+                    ).first()
+                except (ValueError, TypeError):
+                    shipping_option = ShippingOption.objects.filter(
+                        store=store, code=shipping_option_id, active=True
+                    ).first()
+            elif shipping_option_id == "standard":
+                shipping_option = (
+                    ShippingOption.objects.filter(store=store, active=True)
+                    .order_by("price", "name")
+                    .first()
+                )
+
+            if shipping_option is not None:
+                shipping_total = shipping_option.price
+                shipping_option_snapshot = {
+                    "id": str(shipping_option.id),
+                    "code": shipping_option.code,
+                    "name": shipping_option.name,
+                    "price": str(shipping_option.price),
+                }
+            else:
+                shipping_total = Decimal("4.00")
+                shipping_option_snapshot = {
+                    "code": "standard",
+                    "name": "Standard",
+                    "price": "4.00",
+                }
+
             tax_total = Decimal("0.00")
             discount_total = Decimal("0.00")
             grand_total = subtotal + shipping_total + tax_total - discount_total
@@ -151,7 +212,8 @@ def checkout(
                 tax_total=tax_total,
                 discount_total=discount_total,
                 grand_total=grand_total,
-                address_snapshot=delivery_address or {},
+                address_snapshot=address_snapshot,
+                shipping_option_snapshot=shipping_option_snapshot,
             )
 
             for item in items:

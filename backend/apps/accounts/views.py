@@ -1,11 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
+from django.http import Http404
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
-from apps.accounts.serializers import RegisterSerializer, UserSerializer
+from apps.accounts.models import Address
+from apps.accounts.serializers import AddressSerializer, RegisterSerializer, UserSerializer
 
 
 class RegisterView(APIView):
@@ -57,3 +59,45 @@ class MeView(APIView):
 
     def get(self, request):
         return Response(UserSerializer(request.user).data)
+
+
+class AddressListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        addresses = Address.objects.filter(customer=request.user).order_by(
+            "-is_default", "created_at"
+        )
+        return Response(AddressSerializer(addresses, many=True).data)
+
+    def post(self, request):
+        serializer = AddressSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        address = serializer.save(customer=request.user)
+        return Response(AddressSerializer(address).data, status=status.HTTP_201_CREATED)
+
+
+class AddressDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, request, address_id):
+        address = Address.objects.filter(pk=address_id, customer=request.user).first()
+        if address is None:
+            raise Http404
+        return address
+
+    def get(self, request, *args, **kwargs):
+        address = self.get_object(request, self.kwargs["address_id"])
+        return Response(AddressSerializer(address).data)
+
+    def patch(self, request, *args, **kwargs):
+        address = self.get_object(request, self.kwargs["address_id"])
+        serializer = AddressSerializer(address, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        address = serializer.save()
+        return Response(AddressSerializer(address).data)
+
+    def delete(self, request, *args, **kwargs):
+        address = self.get_object(request, self.kwargs["address_id"])
+        address.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

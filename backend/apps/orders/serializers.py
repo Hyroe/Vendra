@@ -31,6 +31,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "status",
             "totals",
             "address_snapshot",
+            "shipping_option_snapshot",
             "items",
             "created_at",
             "updated_at",

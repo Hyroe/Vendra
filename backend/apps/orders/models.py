@@ -53,6 +53,7 @@ class Order(models.Model):
     discount_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     grand_total = models.DecimalField(max_digits=12, decimal_places=2)
     address_snapshot = models.JSONField(default=dict, blank=True)
+    shipping_option_snapshot = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

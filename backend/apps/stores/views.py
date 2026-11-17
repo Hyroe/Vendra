@@ -1,11 +1,14 @@
+from django.http import Http404
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .models import Store
+from .models import ShippingOption, Store
 from .permissions import IsStoreMember
 from .selectors import public_store_detail, public_stores, store_for_user, stores_for_user
 from .serializers import (
+    ShippingOptionSerializer,
     StoreCreateSerializer,
     StoreSerializer,
     StoreUpdateSerializer,
@@ -67,3 +70,49 @@ class SellerStoreDetailView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         store = update_store(store=store, **serializer.validated_data)
         return Response(StoreSerializer(store).data)
+
+
+class SellerShippingOptionListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        store = store_for_user(user=request.user, store_id=self.kwargs["store_id"])
+        if store is None:
+            raise Http404
+        options = ShippingOption.objects.filter(store=store).order_by("price", "name")
+        return Response(ShippingOptionSerializer(options, many=True).data)
+
+    def post(self, request, *args, **kwargs):
+        store = store_for_user(user=request.user, store_id=self.kwargs["store_id"])
+        if store is None:
+            raise Http404
+        serializer = ShippingOptionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        option = serializer.save(store=store)
+        return Response(ShippingOptionSerializer(option).data, status=status.HTTP_201_CREATED)
+
+
+class SellerShippingOptionDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, request, option_id):
+        option = ShippingOption.objects.filter(
+            pk=option_id,
+            store__memberships__user=request.user,
+            store__memberships__active=True,
+        ).first()
+        if option is None:
+            raise Http404
+        return option
+
+    def patch(self, request, *args, **kwargs):
+        option = self.get_object(request, self.kwargs["option_id"])
+        serializer = ShippingOptionSerializer(option, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        option = serializer.save()
+        return Response(ShippingOptionSerializer(option).data)
+
+    def delete(self, request, *args, **kwargs):
+        option = self.get_object(request, self.kwargs["option_id"])
+        option.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

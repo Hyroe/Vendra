@@ -7,7 +7,14 @@ from .token_views import (
     MobileTokenRefreshView,
     MobileTokenRevokeView,
 )
-from .views import LoginView, LogoutView, MeView, RegisterView
+from .views import (
+    AddressDetailView,
+    AddressListCreateView,
+    LoginView,
+    LogoutView,
+    MeView,
+    RegisterView,
+)
 
 urlpatterns = [
     path("auth/register", RegisterView.as_view(), name="auth-register"),
@@ -22,5 +29,7 @@ urlpatterns = [
         MobileSessionRevokeView.as_view(),
         name="auth-session-revoke",
     ),
+    path("addresses", AddressListCreateView.as_view(), name="address-list-create"),
+    path("addresses/<uuid:address_id>", AddressDetailView.as_view(), name="address-detail"),
     path("me", MeView.as_view(), name="me"),
 ]

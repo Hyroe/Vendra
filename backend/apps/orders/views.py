@@ -59,6 +59,7 @@ class OrderListCreateView(APIView):
             )
 
         delivery_address = request.data.get("delivery_address")
+        delivery_address_id = request.data.get("delivery_address_id")
         shipping_option_id = request.data.get("shipping_option_id", "standard")
 
         try:
@@ -66,6 +67,7 @@ class OrderListCreateView(APIView):
                 customer=request.user,
                 cart_id=cart_id,
                 delivery_address=delivery_address,
+                delivery_address_id=delivery_address_id,
                 shipping_option_id=shipping_option_id,
                 idempotency_key=idempotency_key,
             )
@@ -269,6 +271,7 @@ def _serialize_order_detail(order):
             "grand_total": str(order.grand_total),
         },
         "address_snapshot": order.address_snapshot,
+        "shipping_option_snapshot": order.shipping_option_snapshot,
         "items": [
             {
                 "id": str(item.id),

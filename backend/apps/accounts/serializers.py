@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.accounts.models import MobileSession, User
+from apps.accounts.models import Address, MobileSession, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -40,6 +40,32 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = [
+            "id",
+            "label",
+            "recipient_name",
+            "line1",
+            "line2",
+            "city",
+            "region",
+            "postal_code",
+            "country",
+            "is_default",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_country(self, value):
+        value = value.upper()
+        if len(value) != 2 or not value.isalpha():
+            raise serializers.ValidationError("Country must be a 2-letter ISO code.")
+        return value
 
 
 class MobileSessionSerializer(serializers.ModelSerializer):

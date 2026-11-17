@@ -25,14 +25,19 @@
 | ADR-020 | Real payment provider and operational hardening proposed: no provider selected, webhook/reconciliation requirements, refund policy pending | M8 review and hardening without production claim |
 | ADR-021 | Mobile authentication tokens: JWT access + rotating opaque refresh, secure storage, session revocation | closes OPEN-001 as a development default |
 | ADR-022 | Flutter state management: Riverpod for dependency injection and feature state | closes OPEN-002 with a scalable but simple baseline |
+| ADR-023 | Address and ShippingOption: reusable customer addresses, store shipping methods, additive snapshots, backward-compatible checkout | closes OPEN-004 as an additive evolution |
+
+## Provisionally resolved for development (not production-approved)
+| ID | Issue | Development default / ADR |
+|---|---|---|
+| OPEN-001 | Flutter auth/session model | JWT access + rotating refresh tokens, secure storage, session revocation (ADR-021). Production security review still required. |
+| OPEN-002 | Flutter state management | Riverpod for dependency injection and feature state (ADR-022). |
+| OPEN-004 | Address storage / checkout request | Address and ShippingOption models with immutable order snapshots (ADR-023). Tax and shipping calculation remain open (OPEN-003). |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |
 |---|---|---|
-| OPEN-001 | Flutter auth/session model | choose and threat-model revocable mobile credentials; avoid insecure token persistence |
-| OPEN-002 | Flutter state management | Riverpod or Bloc after small spike |
 | OPEN-003 | Tax and shipping | fixed mock shipping + zero tax in isolated fixtures only; replace with jurisdiction-aware requirements before real sales |
-| OPEN-004 | Address storage / checkout request | define Address and ShippingOption or validated address snapshot; update API and privacy policy |
 | OPEN-005 | Currency support | USD fixtures; store currency configured, payment capability constrained |
 | OPEN-006 | Payment refund/cancel after PAID | business policy and state transitions required before implementing |
 | OPEN-007 | Real payment gateway | Stripe or alternative, after regional/legal review |

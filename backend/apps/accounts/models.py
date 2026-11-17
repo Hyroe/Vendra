@@ -27,6 +27,33 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+class Address(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    customer = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.CASCADE,
+        related_name="addresses",
+    )
+    label = models.CharField(max_length=64, blank=True)
+    recipient_name = models.CharField(max_length=120, blank=True)
+    line1 = models.CharField(max_length=255)
+    line2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=120)
+    region = models.CharField(max_length=120, blank=True)
+    postal_code = models.CharField(max_length=32, blank=True)
+    country = models.CharField(max_length=2, default="US")
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "accounts_address"
+        ordering = ["-is_default", "created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.customer_id}:{self.line1}"
+
+
 class MobileSession(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(

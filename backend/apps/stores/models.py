@@ -41,6 +41,40 @@ class Store(models.Model):
         return self.name
 
 
+class ShippingOption(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    store = models.ForeignKey(
+        Store,
+        on_delete=models.CASCADE,
+        related_name="shipping_options",
+    )
+    code = models.CharField(max_length=64)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    active = models.BooleanField(default=True)
+    estimated_days = models.PositiveSmallIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "stores_shipping_option"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["store", "code"],
+                name="stores_shipping_option_store_code_unique",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(price__gte=0),
+                name="stores_shipping_option_price_nonnegative",
+            ),
+        ]
+        ordering = ["price", "name"]
+
+    def __str__(self) -> str:
+        return f"{self.store_id}:{self.code}"
+
+
 class StoreMembership(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
