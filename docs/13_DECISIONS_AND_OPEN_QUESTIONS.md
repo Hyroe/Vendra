@@ -31,6 +31,7 @@
 | ADR-026 | Order/delivery synchronization: READY_FOR_PICKUP -> DELIVERED only through sync service, idempotent completion | closes OPEN-008 for delivery completion |
 | ADR-027 | Idempotency retention and cleanup: expires_at at creation, configurable retention, cleanup command, no financial mutation | closes OPEN-012 as an operational default |
 | ADR-028 | Currency support baseline: supported currencies limited to USD/EUR/GBP, normalized uppercase, store-scoped orders | closes OPEN-005 as a development default |
+| ADR-029 | Privacy and retention baseline: account/order/address/audit retention windows, PII exclusion from logs, user-initiated address deletion | closes OPEN-010 as a non-legal development baseline |
 
 ## Provisionally resolved for development (not production-approved)
 | ID | Issue | Development default / ADR |
@@ -43,6 +44,7 @@
 | OPEN-008 | Fulfillment after READY_FOR_PICKUP | Delivery completion synchronizes Order to DELIVERED through sync_order_with_delivery (ADR-026). |
 | OPEN-012 | Idempotency response retention | expires_at at creation, configurable retention, cleanup command (ADR-027). |
 | OPEN-005 | Currency support | Supported currencies USD/EUR/GBP, normalized uppercase, store-scoped orders (ADR-028). |
+| OPEN-010 | Privacy/retention and data deletion | Retention baseline documented (ADR-029); legal review and deletion/export flows required. |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |
@@ -50,7 +52,6 @@
 
 | OPEN-007 | Real payment gateway | Stripe or alternative, after regional/legal review |
 | OPEN-009 | Production cloud/deployment | select when nonfunctional requirements and budget known |
-| OPEN-010 | Privacy/retention and data deletion | needs business/legal decision before production |
 | OPEN-011 | Seller onboarding/verification | MVP sandbox registration; real marketplace requires compliance/abuse design |
 
 ## ADR proposal template
