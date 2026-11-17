@@ -28,6 +28,7 @@
 | ADR-023 | Address and ShippingOption: reusable customer addresses, store shipping methods, additive snapshots, backward-compatible checkout | closes OPEN-004 as an additive evolution |
 | ADR-024 | Tax and shipping calculation: dedicated pricing service, shipping from ShippingOption or development fallback, explicit zero-tax development default | closes OPEN-003 as a development default |
 | ADR-025 | Cancellation and refund policy: only PAYMENT_PENDING orders can be cancelled; no refunds or post-payment cancellation in MVP | closes OPEN-006 for MVP scope |
+| ADR-026 | Order/delivery synchronization: READY_FOR_PICKUP -> DELIVERED only through sync service, idempotent completion | closes OPEN-008 for delivery completion |
 
 ## Provisionally resolved for development (not production-approved)
 | ID | Issue | Development default / ADR |
@@ -37,13 +38,13 @@
 | OPEN-003 | Tax and shipping | Pricing service with shipping from ShippingOption or development fallback; tax explicitly zero in development (ADR-024). Production tax policy remains open. |
 | OPEN-004 | Address storage / checkout request | Address and ShippingOption models with immutable order snapshots (ADR-023). |
 | OPEN-006 | Payment refund/cancel after PAID | MVP allows cancellation only for PAYMENT_PENDING orders; no refunds or post-payment cancellation (ADR-025). |
+| OPEN-008 | Fulfillment after READY_FOR_PICKUP | Delivery completion synchronizes Order to DELIVERED through sync_order_with_delivery (ADR-026). |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |
 |---|---|---|
 
 | OPEN-007 | Real payment gateway | Stripe or alternative, after regional/legal review |
-| OPEN-008 | Fulfillment after READY_FOR_PICKUP | synchronize order projection and Delivery without divergent status |
 | OPEN-009 | Production cloud/deployment | select when nonfunctional requirements and budget known |
 | OPEN-010 | Privacy/retention and data deletion | needs business/legal decision before production |
 | OPEN-011 | Seller onboarding/verification | MVP sandbox registration; real marketplace requires compliance/abuse design |

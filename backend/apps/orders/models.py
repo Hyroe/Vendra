@@ -11,6 +11,7 @@ class OrderStatus(models.TextChoices):
     ACCEPTED = "ACCEPTED", "Accepted"
     PREPARING = "PREPARING", "Preparing"
     READY_FOR_PICKUP = "READY_FOR_PICKUP", "Ready for pickup"
+    DELIVERED = "DELIVERED", "Delivered"
     PAYMENT_FAILED = "PAYMENT_FAILED", "Payment failed"
     CANCELLED = "CANCELLED", "Cancelled"
 

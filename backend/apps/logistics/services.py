@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 
-from apps.orders.models import OrderStatus
+from apps.orders.models import Order, OrderStatus, OrderTransition, OutboxEvent
 from apps.stores.selectors import store_for_user
 
 from .models import Delivery, DeliveryEvent, DeliveryStatus
@@ -84,4 +84,37 @@ def transition_delivery(*, delivery, to_status, actor):
             delivery.delivered_at = now
         delivery.save()
 
+        if to_status == DeliveryStatus.DELIVERED:
+            sync_order_with_delivery(delivery)
+
     return delivery
+
+
+def sync_order_with_delivery(delivery):
+    if delivery.status != DeliveryStatus.DELIVERED:
+        return delivery.order
+
+    with transaction.atomic():
+        order = Order.objects.select_for_update().get(pk=delivery.order_id)
+        if order.status == OrderStatus.DELIVERED:
+            return order
+        if order.status != OrderStatus.READY_FOR_PICKUP:
+            return order
+
+        OrderTransition.objects.create(
+            order=order,
+            from_status=order.status,
+            to_status=OrderStatus.DELIVERED,
+            actor=delivery.courier,
+            reason="delivery_completed",
+        )
+        order.status = OrderStatus.DELIVERED
+        order.save(update_fields=["status", "updated_at"])
+
+        OutboxEvent.objects.create(
+            aggregate_type="order",
+            aggregate_id=order.id,
+            event_type="order.delivered.v1",
+            payload={"order_id": str(order.id), "delivery_id": str(delivery.id)},
+        )
+    return order

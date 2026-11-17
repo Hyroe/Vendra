@@ -99,6 +99,13 @@ def test_assigned_courier_can_complete_delivery(client):
     assert complete.status_code == 200
     assert complete.json()["status"] == "DELIVERED"
 
+    client.post("/api/v1/auth/logout", content_type="application/json")
+    _login(client, "seller@example.com")
+
+    order_detail = client.get(f"/api/v1/orders/{order['id']}")
+    assert order_detail.status_code == 200
+    assert order_detail.json()["status"] == "DELIVERED"
+
 
 @pytest.mark.django_db
 def test_unrelated_courier_cannot_update_delivery(client):
