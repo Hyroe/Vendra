@@ -29,6 +29,7 @@
 | ADR-024 | Tax and shipping calculation: dedicated pricing service, shipping from ShippingOption or development fallback, explicit zero-tax development default | closes OPEN-003 as a development default |
 | ADR-025 | Cancellation and refund policy: only PAYMENT_PENDING orders can be cancelled; no refunds or post-payment cancellation in MVP | closes OPEN-006 for MVP scope |
 | ADR-026 | Order/delivery synchronization: READY_FOR_PICKUP -> DELIVERED only through sync service, idempotent completion | closes OPEN-008 for delivery completion |
+| ADR-027 | Idempotency retention and cleanup: expires_at at creation, configurable retention, cleanup command, no financial mutation | closes OPEN-012 as an operational default |
 
 ## Provisionally resolved for development (not production-approved)
 | ID | Issue | Development default / ADR |
@@ -39,6 +40,7 @@
 | OPEN-004 | Address storage / checkout request | Address and ShippingOption models with immutable order snapshots (ADR-023). |
 | OPEN-006 | Payment refund/cancel after PAID | MVP allows cancellation only for PAYMENT_PENDING orders; no refunds or post-payment cancellation (ADR-025). |
 | OPEN-008 | Fulfillment after READY_FOR_PICKUP | Delivery completion synchronizes Order to DELIVERED through sync_order_with_delivery (ADR-026). |
+| OPEN-012 | Idempotency response retention | expires_at at creation, configurable retention, cleanup command (ADR-027). |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |
@@ -48,7 +50,6 @@
 | OPEN-009 | Production cloud/deployment | select when nonfunctional requirements and budget known |
 | OPEN-010 | Privacy/retention and data deletion | needs business/legal decision before production |
 | OPEN-011 | Seller onboarding/verification | MVP sandbox registration; real marketplace requires compliance/abuse design |
-| OPEN-012 | Idempotency response retention | define bounded retention and response storage/redaction policy |
 
 ## ADR proposal template
 ```

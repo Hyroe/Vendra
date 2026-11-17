@@ -1,8 +1,10 @@
 import hashlib
 import json
 import uuid
+from datetime import timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import F
 from django.utils import timezone
@@ -108,6 +110,8 @@ def checkout(
                 key=idempotency_key,
                 request_hash=request_hash,
                 status="PROCESSING",
+                expires_at=timezone.now()
+                + timedelta(hours=settings.IDEMPOTENCY_KEY_RETENTION_HOURS),
             )
             created = True
     except IntegrityError:
