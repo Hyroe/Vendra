@@ -31,16 +31,30 @@ class Command(BaseCommand):
             initial_stock=50,
         )
 
-        customer = User.objects.create_user(email="zap-customer@example.com", password="StrongPass123!")
+        customer = User.objects.create_user(
+            email="zap-customer@example.com", password="StrongPass123!"
+        )
         cart = add_item(customer=customer, product=product, quantity=1)
 
-        courier = User.objects.create_user(email="zap-courier@example.com", password="StrongPass123!")
+        courier = User.objects.create_user(
+            email="zap-courier@example.com", password="StrongPass123!"
+        )
 
-        other_seller = User.objects.create_user(email="zap-other-seller@example.com", password="StrongPass123!")
+        other_seller = User.objects.create_user(
+            email="zap-other-seller@example.com", password="StrongPass123!"
+        )
 
         payload = {
-            "seller": {"email": seller.email, "password": "StrongPass123!", "store_id": str(store.id)},
-            "customer": {"email": customer.email, "password": "StrongPass123!", "cart_id": str(cart.id)},
+            "seller": {
+                "email": seller.email,
+                "password": "StrongPass123!",
+                "store_id": str(store.id),
+            },
+            "customer": {
+                "email": customer.email,
+                "password": "StrongPass123!",
+                "cart_id": str(cart.id),
+            },
             "courier": {"email": courier.email, "password": "StrongPass123!"},
             "other_seller": {"email": other_seller.email, "password": "StrongPass123!"},
             "product_id": str(product.id),
