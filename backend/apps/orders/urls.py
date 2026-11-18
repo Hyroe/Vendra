@@ -6,6 +6,7 @@ from .views import (
     OrderDetailView,
     OrderListCreateView,
     SellerOrderAcceptView,
+    SellerOrderConfirmPaymentView,
     SellerOrderListView,
     SellerOrderPrepareView,
     SellerOrderReadyView,
@@ -34,6 +35,11 @@ urlpatterns = [
         "seller/orders/<uuid:order_id>/ready",
         SellerOrderReadyView.as_view(),
         name="seller-order-ready",
+    ),
+    path(
+        "seller/orders/<uuid:order_id>/confirm-payment",
+        SellerOrderConfirmPaymentView.as_view(),
+        name="seller-order-confirm-payment",
     ),
     path(
         "dev/payments/<uuid:attempt_id>/simulate",

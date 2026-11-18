@@ -34,6 +34,7 @@
 | ADR-029 | Privacy and retention baseline: account/order/address/audit retention windows, PII exclusion from logs, user-initiated address deletion | closes OPEN-010 as a non-legal development baseline |
 | ADR-030 | Seller onboarding and verification baseline: verification fields and staff-only verification endpoint | closes OPEN-011 as an MVP development default |
 | ADR-031 | Deployment baseline: Docker Compose, Gunicorn, Celery, production settings, health checks, compose override | closes OPEN-009 as a portable development default |
+| ADR-032 | Manual payment for Cuba: seller/admin confirms transfer or cash, reuses payment transition and outbox, no card data | provides a Cuba-compatible development payment default |
 
 ## Provisionally resolved for development (not production-approved)
 | ID | Issue | Development default / ADR |

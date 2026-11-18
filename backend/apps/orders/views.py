@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .fulfillment import transition_order
+from .models import PaymentAttempt, PaymentStatus
 from .selectors import (
     order_for_customer,
     order_for_store_user,
@@ -226,6 +227,7 @@ class DevPaymentSimulateView(APIView):
                 outcome=outcome,
                 event_id=event_id,
                 actor=request.user,
+                provider_name="fake",
             )
         except Exception as exc:
             return Response(
@@ -286,3 +288,59 @@ def _serialize_order_detail(order):
         ],
         "created_at": order.created_at.isoformat(),
     }
+
+
+class SellerOrderConfirmPaymentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        order = order_for_store_user(user=request.user, order_id=self.kwargs["order_id"])
+        if order is None:
+            raise Http404
+
+        attempt = (
+            PaymentAttempt.objects.filter(order=order, status=PaymentStatus.PENDING)
+            .order_by("-created_at")
+            .first()
+        )
+        if attempt is None:
+            latest_attempt = (
+                PaymentAttempt.objects.filter(order=order).order_by("-created_at").first()
+            )
+            if latest_attempt is not None and latest_attempt.status == PaymentStatus.SUCCEEDED:
+                return Response(
+                    {"status": "duplicate", "order_status": order.status},
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                {
+                    "error": {
+                        "code": "ORDER_CONFLICT",
+                        "message": "Order has no pending payment attempt.",
+                        "request_id": getattr(request, "request_id", None),
+                    }
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        try:
+            result = simulate_payment(
+                attempt_id=attempt.id,
+                outcome="succeeded",
+                event_id=f"manual-{attempt.id}",
+                actor=request.user,
+                provider_name="manual",
+            )
+        except Exception as exc:
+            return Response(
+                {
+                    "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": str(exc),
+                        "request_id": getattr(request, "request_id", None),
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(result, status=status.HTTP_200_OK)

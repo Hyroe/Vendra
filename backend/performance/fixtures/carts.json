@@ -1,0 +1,52 @@
+[
+  {
+    "email": "loadtest-buyer-0@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "58ac575e-c0d3-421d-a8dc-773b5b9d0ac5"
+  },
+  {
+    "email": "loadtest-buyer-1@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "008e54d6-c2db-43c4-a65e-ae6042defafb"
+  },
+  {
+    "email": "loadtest-buyer-2@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "96bb40cd-1aeb-4a11-919f-4c85dac8ff7d"
+  },
+  {
+    "email": "loadtest-buyer-3@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "b997fe10-2066-4793-ba12-06f03da8f74d"
+  },
+  {
+    "email": "loadtest-buyer-4@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "5b364a55-2b28-4555-978b-a46df35b110e"
+  },
+  {
+    "email": "loadtest-buyer-5@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "ac1931d2-bb0e-4ae4-8da0-f36d9fd18c56"
+  },
+  {
+    "email": "loadtest-buyer-6@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "27825d3e-279d-47f6-8cbb-18bc4affa0e2"
+  },
+  {
+    "email": "loadtest-buyer-7@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "ab67598c-7baa-4d6c-9c4f-7ba4e922ba06"
+  },
+  {
+    "email": "loadtest-buyer-8@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "a8c01521-f874-415f-b461-9591ec674b0b"
+  },
+  {
+    "email": "loadtest-buyer-9@example.com",
+    "password": "LoadTest123!",
+    "cart_id": "580e4635-2a9d-4f12-ac0d-5df650b92f39"
+  }
+]

@@ -311,11 +311,11 @@ def release_reservation_for_order(order):
             reservation.save(update_fields=["status"])
 
 
-def simulate_payment(*, attempt_id, outcome, event_id=None, actor=None):
+def simulate_payment(*, attempt_id, outcome, event_id=None, actor=None, provider_name="fake"):
     if outcome not in {"succeeded", "failed"}:
         raise ValueError("outcome must be 'succeeded' or 'failed'.")
 
-    provider = "fake"
+    provider = provider_name
     provider_event_id = event_id or f"fake-{attempt_id}-{outcome}-{uuid.uuid4()}"
 
     try:
@@ -337,6 +337,9 @@ def simulate_payment(*, attempt_id, outcome, event_id=None, actor=None):
     with transaction.atomic():
         attempt = PaymentAttempt.objects.select_for_update().get(pk=attempt_id)
         order = Order.objects.select_for_update().get(pk=attempt.order_id)
+        if attempt.provider != provider:
+            attempt.provider = provider
+            attempt.save(update_fields=["provider"])
         event.payment_attempt = attempt
         event.save(update_fields=["payment_attempt"])
 
