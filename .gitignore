@@ -37,3 +37,6 @@ mobile/.pub-cache/
 mobile/.pub/
 # Celery
 celerybeat-schedule*
+
+# k6 fixtures
+performance/fixtures/

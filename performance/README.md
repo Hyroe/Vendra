@@ -64,4 +64,34 @@ Each run must record:
 
 ## Exit criterion
 M6 requires a documented k6 report. Until k6 is available, this document is the
-placeholder and the scripts are the executable artifact.
+placeholder and the scripts are the executable artifact.## Checkout baseline (2026-11-17)
+
+Environment:
+- Backend: Django development settings with high test throttle rates
+- Database: PostgreSQL 17 (Docker)
+- k6: v0.55.0, Windows/amd64
+- Fixtures: 10 seeded buyers/carts, 1 product with stock 10
+
+Result (`performance/checkout.js`):
+- VUs: 10
+- Requests: 20 (10 logins in setup + 10 checkouts)
+- `http_req_failed`: 0.00%
+- `http_req_duration` p95: 1.05 s
+- `{type:checkout}` p95: 167.99 ms
+
+Interpretation:
+- The checkout mutation itself is below the 800 ms p95 target.
+- The end-to-end k6 request duration includes setup/login and connection overhead.
+- A stricter checkout-only measurement is recommended before production claims.
+
+### OWASP ZAP
+- ZAP is not installed in this environment, so no automated baseline scan was run.
+- The API is protected by parameterized ORM access, scoped queries, throttling and
+  JSON error handling, but a ZAP baseline remains pending.
+
+### E2E Flutter to PostgreSQL
+- Backend and PostgreSQL are running in Docker.
+- A debug APK was built and installed on a physical Android device.
+- The app can reach the backend through `adb reverse tcp:8000`.
+- Full synthetic purchase validation requires manual interaction or a Flutter
+  integration test harness.

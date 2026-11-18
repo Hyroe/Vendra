@@ -1,12 +1,20 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { SharedArray } from 'k6/data';
+
+const fixtures = new SharedArray('carts', function () {
+  return JSON.parse(open('./fixtures/carts.json'));
+});
 
 export const options = {
-  stages: [
-    { duration: '30s', target: 5 },
-    { duration: '60s', target: 20 },
-    { duration: '30s', target: 0 },
-  ],
+  scenarios: {
+    checkout: {
+      executor: 'per-vu-iterations',
+      vus: 10,
+      iterations: 1,
+      maxDuration: '2m',
+    },
+  },
   thresholds: {
     http_req_failed: ['rate<0.01'],
     'http_req_duration{type:checkout}': ['p(95)<800'],
@@ -15,13 +23,40 @@ export const options = {
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8000/api/v1';
 
-export default function () {
-  // Checkout load testing requires pre-created users, carts and inventory.
-  // This script is a template and must be adapted to the test fixture setup.
-  const response = http.get(`${BASE_URL}/healthz`, { tags: { type: 'checkout' } });
-  check(response, {
-    'health endpoint is 200': (r) => r.status === 200,
+export function setup() {
+  return fixtures.map((fixture) => {
+    const login = http.post(
+      `${BASE_URL}/auth/token`,
+      JSON.stringify({ email: fixture.email, password: fixture.password }),
+      { headers: { 'Content-Type': 'application/json' } },
+    );
+    return {
+      cart_id: fixture.cart_id,
+      access: login.json('access'),
+    };
+  });
+}
+
+export default function (data) {
+  const fixture = data[__VU - 1];
+  if (!fixture || !fixture.access) return;
+
+  const checkout = http.post(
+    `${BASE_URL}/orders`,
+    JSON.stringify({ cart_id: fixture.cart_id }),
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${fixture.access}`,
+        'Idempotency-Key': `checkout-${__VU}`,
+      },
+      tags: { type: 'checkout' },
+    },
+  );
+  check(checkout, {
+    'checkout is 201': (r) => r.status === 201,
+    'order is pending': (r) => r.json('status') === 'PAYMENT_PENDING',
   });
 
-  sleep(1);
+  sleep(0.1);
 }

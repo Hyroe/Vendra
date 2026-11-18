@@ -2,7 +2,7 @@ from .base import *  # noqa: F401,F403
 
 DEBUG = False
 SECRET_KEY = "test-secret-key-not-for-production"  # nosec B105
-ALLOWED_HOSTS = ["testserver"]
+ALLOWED_HOSTS = ["testserver", "localhost", "127.0.0.1"]
 
 FAKE_PAYMENT_ENABLED = True
 CELERY_TASK_ALWAYS_EAGER = True
