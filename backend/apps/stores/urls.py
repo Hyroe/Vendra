@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .verification import SellerStoreVerificationView
 from .views import (
     PublicStoreDetailView,
     PublicStoreListView,
@@ -25,5 +26,10 @@ urlpatterns = [
         "seller/shipping-options/<uuid:option_id>",
         SellerShippingOptionDetailView.as_view(),
         name="seller-shipping-option-detail",
+    ),
+    path(
+        "seller/stores/<uuid:store_id>/verify",
+        SellerStoreVerificationView.as_view(),
+        name="seller-store-verify",
     ),
 ]

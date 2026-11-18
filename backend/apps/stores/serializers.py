@@ -12,10 +12,12 @@ class StoreSerializer(serializers.ModelSerializer):
             "slug",
             "currency",
             "status",
+            "verification_status",
+            "verified_at",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "slug", "created_at", "updated_at"]
+        read_only_fields = ["id", "slug", "verified_at", "created_at", "updated_at"]
 
 
 class StoreCreateSerializer(serializers.ModelSerializer):

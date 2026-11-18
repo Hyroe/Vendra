@@ -15,6 +15,13 @@ class StoreCurrency(models.TextChoices):
     GBP = "GBP", "GBP"
 
 
+class StoreVerificationStatus(models.TextChoices):
+    UNVERIFIED = "UNVERIFIED", "Unverified"
+    PENDING = "PENDING", "Pending"
+    VERIFIED = "VERIFIED", "Verified"
+    REJECTED = "REJECTED", "Rejected"
+
+
 class StoreMembershipRole(models.TextChoices):
     OWNER = "OWNER", "Owner"
     MANAGER = "MANAGER", "Manager"
@@ -34,6 +41,19 @@ class Store(models.Model):
         max_length=16,
         choices=StoreStatus.choices,
         default=StoreStatus.ACTIVE,
+    )
+    verification_status = models.CharField(
+        max_length=16,
+        choices=StoreVerificationStatus.choices,
+        default=StoreVerificationStatus.UNVERIFIED,
+    )
+    verified_at = models.DateTimeField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="verified_stores",
     )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
