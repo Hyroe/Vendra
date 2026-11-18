@@ -1,0 +1,117 @@
+services:
+  db:
+    restart: always
+
+  redis:
+    restart: always
+
+  rabbitmq:
+    restart: always
+
+  api:
+    build:
+      context: ./backend
+      target: base
+    command:
+      - gunicorn
+      - config.wsgi:application
+      - --bind
+      - 0.0.0.0:8000
+      - --workers
+      - "2"
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?}
+      APP_ENV: production
+      DEBUG: "False"
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:?}
+      DATABASE_URL: postgres://${POSTGRES_USER:-localhub}:${POSTGRES_PASSWORD:-localhub}@db:5432/${POSTGRES_DB:-localhub}
+      CACHE_URL: redis://redis:6379/1
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672//
+      REDIS_URL: redis://redis:6379/0
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      FAKE_PAYMENT_ENABLED: "False"
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes: []
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: always
+
+  worker:
+    build:
+      context: ./backend
+      target: base
+    command:
+      - celery
+      - -A
+      - config
+      - worker
+      - -l
+      - info
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?}
+      APP_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-localhub}:${POSTGRES_PASSWORD:-localhub}@db:5432/${POSTGRES_DB:-localhub}
+      CACHE_URL: redis://redis:6379/1
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672//
+      REDIS_URL: redis://redis:6379/0
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      FAKE_PAYMENT_ENABLED: "False"
+    volumes: []
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: always
+
+  beat:
+    build:
+      context: ./backend
+      target: base
+    command:
+      - celery
+      - -A
+      - config
+      - beat
+      - -l
+      - info
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?}
+      APP_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-localhub}:${POSTGRES_PASSWORD:-localhub}@db:5432/${POSTGRES_DB:-localhub}
+      CACHE_URL: redis://redis:6379/1
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672//
+      REDIS_URL: redis://redis:6379/0
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    volumes: []
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: always

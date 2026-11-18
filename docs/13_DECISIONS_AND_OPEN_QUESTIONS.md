@@ -33,6 +33,7 @@
 | ADR-028 | Currency support baseline: supported currencies limited to USD/EUR/GBP, normalized uppercase, store-scoped orders | closes OPEN-005 as a development default |
 | ADR-029 | Privacy and retention baseline: account/order/address/audit retention windows, PII exclusion from logs, user-initiated address deletion | closes OPEN-010 as a non-legal development baseline |
 | ADR-030 | Seller onboarding and verification baseline: verification fields and staff-only verification endpoint | closes OPEN-011 as an MVP development default |
+| ADR-031 | Deployment baseline: Docker Compose, Gunicorn, Celery, production settings, health checks, compose override | closes OPEN-009 as a portable development default |
 
 ## Provisionally resolved for development (not production-approved)
 | ID | Issue | Development default / ADR |
@@ -47,13 +48,13 @@
 | OPEN-005 | Currency support | Supported currencies USD/EUR/GBP, normalized uppercase, store-scoped orders (ADR-028). |
 | OPEN-010 | Privacy/retention and data deletion | Retention baseline documented (ADR-029); legal review and deletion/export flows required. |
 | OPEN-011 | Seller onboarding/verification | Verification fields and staff-only verification endpoint (ADR-030). Production onboarding remains open. |
+| OPEN-009 | Production cloud/deployment | Portable Docker Compose deployment baseline with production settings (ADR-031). Cloud provider remains undecided. |
 
 ## Open decisions — do not silently invent a production policy
 | ID | Issue | Suggested development default / required decision |
 |---|---|---|
 
 | OPEN-007 | Real payment gateway | Stripe or alternative, after regional/legal review |
-| OPEN-009 | Production cloud/deployment | select when nonfunctional requirements and budget known |
 
 ## ADR proposal template
 ```
