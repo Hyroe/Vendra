@@ -1,0 +1,40 @@
+{
+  "target": "http://localhost:8000",
+  "apiBase": "http://localhost:8000/api/v1",
+  "context": {
+    "name": "LocalHub API",
+    "include": ["http://localhost:8000/api/.*", "http://localhost:8000/healthz", "http://localhost:8000/readyz"]
+  },
+  "scripts": [
+    {
+      "name": "seed",
+      "type": "standalone",
+      "engine": "Oracle Nashorn",
+      "source": "console.log('LocalHub API scan context loaded');"
+    }
+  ],
+  "users": [
+    {
+      "name": "customer",
+      "credentials": {
+        "username": "zap-customer@example.com",
+        "password": "StrongPass123!"
+      }
+    },
+    {
+      "name": "seller",
+      "credentials": {
+        "username": "zap-seller@example.com",
+        "password": "StrongPass123!"
+      }
+    }
+  ],
+  "authentication": {
+    "type": "manual",
+    "verification": "manual"
+  },
+  "sessionManagement": {
+    "type": "manual",
+    "strategy": "manual"
+  }
+}

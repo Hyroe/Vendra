@@ -97,3 +97,25 @@ Note: quick scan only crawled the root, so it is a baseline rather than full API
 - The app can reach the backend through `adb reverse tcp:8000`.
 - Full synthetic purchase validation requires manual interaction or a Flutter
   integration test harness.
+
+
+### OWASP ZAP API coverage (2026-11-18)
+
+Scans:
+- `performance/zap-api-report.html`: authenticated API surface, catalog endpoint, active scan.
+- `performance/zap-report.html`: root quick scan.
+
+Results:
+- 0 high
+- 1 medium: missing Content-Security-Policy header (3 instances)
+- 1 low: Server header leaks version (4 instances)
+- 1 informational: User-Agent fuzzer (5 instances)
+
+Notes:
+- The API returns JSON only and has no browser-rendered HTML, so CSP is not
+  applicable in the same way as a web app, but the header can still be added by
+  the reverse proxy.
+- The `Server` header is emitted by Django's development server; Gunicorn/nginx
+  should suppress or genericize it in production.
+- Authenticated endpoints require login; ZAP was pointed at public API endpoints
+  and the root. Full authenticated crawling requires session/CSRF integration.

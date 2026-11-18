@@ -1,0 +1,21 @@
+{
+  "seller": {
+    "email": "zap-seller@example.com",
+    "password": "StrongPass123!",
+    "store_id": "bba438b1-b6e0-44da-9b2b-a3b1ab3cf1ae"
+  },
+  "customer": {
+    "email": "zap-customer@example.com",
+    "password": "StrongPass123!",
+    "cart_id": "f60f184c-7d0b-4aac-877d-c256e10872ae"
+  },
+  "courier": {
+    "email": "zap-courier@example.com",
+    "password": "StrongPass123!"
+  },
+  "other_seller": {
+    "email": "zap-other-seller@example.com",
+    "password": "StrongPass123!"
+  },
+  "product_id": "e8138e08-e93e-43c8-a032-4105142c226f"
+}
