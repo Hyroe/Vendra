@@ -85,9 +85,11 @@ Interpretation:
 - A stricter checkout-only measurement is recommended before production claims.
 
 ### OWASP ZAP
-- ZAP is not installed in this environment, so no automated baseline scan was run.
-- The API is protected by parameterized ORM access, scoped queries, throttling and
-  JSON error handling, but a ZAP baseline remains pending.
+- ZAP 2.17.0 quick scan executed against `http://localhost:8000`.
+- Report: `performance/zap-report.html`
+- Alerts: 0 high, 0 medium, 0 low, 0 informational.
+
+Note: quick scan only crawled the root, so it is a baseline rather than full API coverage.
 
 ### E2E Flutter to PostgreSQL
 - Backend and PostgreSQL are running in Docker.
