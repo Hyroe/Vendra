@@ -119,3 +119,12 @@ Notes:
   should suppress or genericize it in production.
 - Authenticated endpoints require login; ZAP was pointed at public API endpoints
   and the root. Full authenticated crawling requires session/CSRF integration.
+### OWASP ZAP production-mode scan (2026-11-18)
+
+Scanned against Gunicorn with `DEBUG=False`:
+- Report: `performance/zap-api-report-prod-2.html`
+- Alerts: 0 high, 0 low, 1 medium, 1 informational.
+- Medium: HTTP only site (expected without TLS in local Docker).
+- Informational: User-Agent fuzzer.
+
+The previous CSP and Server-header findings are resolved in production mode.

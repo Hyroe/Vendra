@@ -15,6 +15,6 @@ def test_security_headers_are_added_outside_debug(client, settings):
     response = client.get("/healthz")
     assert (
         response["Content-Security-Policy"]
-        == "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+        == "default-src 'none'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'"
     )
     assert response["Server"] == "LocalHub"

@@ -6,7 +6,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         if not settings.DEBUG:
             response["Content-Security-Policy"] = (
-                "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+                "default-src 'none'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'"
             )
             response["Server"] = "LocalHub"
         return response
